@@ -1,0 +1,7 @@
+DEFAULT_NAME: str = "UKHO Tides"
+DOMAIN: str = "ukho_tides"
+COORDINATOR: str = "coordinator"
+UNDO_UPDATE_LISTENER: str = "undo_update_listener"
+ATTRIBUTION: str = "Data provided by UK Hydrographic Office"
+ATTR_ICON_RISING: str = "mdi:transfer-up"
+ATTR_ICON_FALLING: str = "mdi:transfer-down"

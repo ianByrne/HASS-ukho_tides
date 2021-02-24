@@ -1,0 +1,23 @@
+{
+  "title": "UKHO Tides",
+  "config": {
+    "step": {
+      "user": {
+        "title": "UKHO Tides",
+        "description": "You will need to sign up for a free Admiralty account to obtain an api key. See the documentation for details on how to do this, and how to find the station ids\n\nhttps://github.com/ianByrne/HASS_Integration_UKHOTides",
+        "data": {
+          "api_key": "[%key:common::config_flow::data::api_key%]",
+          "station_id": "[%key:common::config_flow::data::station_id%]"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_api_key": "[%key:common::config_flow::error::invalid_api_key%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  }
+}

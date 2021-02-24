@@ -1,0 +1,12 @@
+{
+  "domain": "ukho_tides",
+  "name": "UKHO Tides",
+  "config_flow": true,
+  "documentation": "https://github.com/ianByrne/HASS_Integration_UKHOTides",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": [],
+  "homekit": {},
+  "dependencies": [],
+  "codeowners": ["@ianByrne"]
+}
