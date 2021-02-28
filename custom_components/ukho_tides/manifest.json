@@ -4,9 +4,7 @@
   "config_flow": true,
   "documentation": "https://github.com/ianByrne/HASS_Integration_UKHOTides",
   "requirements": [],
-  "ssdp": [],
-  "zeroconf": [],
-  "homekit": {},
   "dependencies": [],
-  "codeowners": ["@ianByrne"]
+  "codeowners": ["@ianByrne"],
+  "version": "0.1.0"
 }

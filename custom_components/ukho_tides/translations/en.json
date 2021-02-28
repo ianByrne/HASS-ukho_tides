@@ -11,12 +11,20 @@
         "step": {
             "user": {
                 "data": {
-                    "api_key": "API Key",
-                    "station_id": "Station Id"
+                    "api_key": "API Key"
                 },
                 "title":"Tides",
-                "description": "You will need to sign up for a free Admiralty account to obtain an api key. See the documentation for details on how to do this, and how to find the station ids\n\nhttps://github.com/ianByrne/HASS_Integration_UKHOTides"
-            }
+                "description": "You will need to sign up for a free Admiralty account to obtain an api key. See the documentation for details on how to do this\n\nhttps://github.com/ianByrne/HASS_Integration_UKHOTides"
+            },
+            "station": {
+                "title": "UKHO Tides",
+                "description": "Select a station to report on, and optionally give it a different name. To add multiple stations, check the 'add another' box",
+                "data": {
+                  "station_id": "Station Id",
+                  "station_name": "Station Name",
+                  "add_another": "Add Another"
+                }
+              }
         }
     },
     "title": "UKHO Tides"

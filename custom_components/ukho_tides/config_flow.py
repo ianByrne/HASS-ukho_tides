@@ -6,13 +6,19 @@ from async_timeout import timeout
 from aiohttp import ClientError
 from aiohttp.client_exceptions import ClientConnectorError
 
-from .ukhotidepredictions import UkhoTidePredictions, ApiError, InvalidApiKeyError
-from .ukhotidepredictions.const import CONF_STATION_ID
-from .const import DOMAIN
+from .admiraltyuktidalapi import AdmiraltyUKTidalApi, ApiError, InvalidApiKeyError
+from .const import (
+    DOMAIN,
+    CONF_STATIONS,
+    CONF_STATION_ID,
+    CONF_STATION_NAME,
+    DEFAULT_NAME,
+)
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_API_KEY
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+import homeassistant.helpers.config_validation as cv
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,16 +31,25 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            websession = async_get_clientsession(self.hass)
+            session = async_get_clientsession(self.hass)
 
             try:
                 async with timeout(10):
-                    ukhoTidePredictions = UkhoTidePredictions(
+                    admiraltyUKTidalApi = AdmiraltyUKTidalApi(
+                        session,
                         user_input[CONF_API_KEY],
-                        websession,
-                        user_input[CONF_STATION_ID],
                     )
-                    await ukhoTidePredictions.async_get_station_name()
+
+                    stations = (await admiraltyUKTidalApi.async_get_stations())[
+                        "features"
+                    ]
+
+                    # self._stations = {}
+
+                    # for s in stations:
+                    #     self._stations.update(
+                    #         {s["properties"]["Id"]: s["properties"]["Name"]}
+                    #     )
 
             except (ApiError, ClientConnectorError, asyncio.TimeoutError, ClientError):
                 errors["base"] = "cannot_connect"
@@ -46,20 +61,69 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "unknown"
 
             else:
-                await self.async_set_unique_id(
-                    user_input[CONF_STATION_ID], raise_on_progress=False
-                )
+                self.data = user_input
+                self.data[CONF_STATIONS] = []
 
-                return self.async_create_entry(
-                    title=ukhoTidePredictions.station_name, data=user_input
-                )
+                return await self.async_step_station()
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_API_KEY): str,
+                }
+            ),
+            errors=errors,
+        )
+
+    async def async_step_station(self, user_input=None):
+        errors = {}
+
+        if user_input is not None:
+            session = async_get_clientsession(self.hass)
+
+            try:
+                async with timeout(10):
+                    admiraltyUKTidalApi = AdmiraltyUKTidalApi(
+                        session,
+                        self.data[CONF_API_KEY],
+                    )
+
+                    station = await admiraltyUKTidalApi.async_get_station(
+                        user_input[CONF_STATION_ID]
+                    )
+
+            except (ApiError, ClientConnectorError, asyncio.TimeoutError, ClientError):
+                errors["base"] = "cannot_connect"
+            except InvalidApiKeyError:
+                errors[CONF_API_KEY] = "invalid_api_key"
+
+            except Exception:
+                _LOGGER.exception("Unexpected exception")
+                errors["base"] = "unknown"
+
+            else:
+                self.data[CONF_STATIONS].append(
+                    {
+                        CONF_STATION_ID: user_input[CONF_STATION_ID],
+                        CONF_STATION_NAME: user_input.get(
+                            CONF_STATION_NAME, station["properties"]["Name"]
+                        ),
+                    }
+                )
+
+                if user_input.get("add_another", False):
+                    return await self.async_step_station()
+
+                return self.async_create_entry(title=DEFAULT_NAME, data=self.data)
+
+        return self.async_show_form(
+            step_id="station",
+            data_schema=vol.Schema(
+                {
                     vol.Required(CONF_STATION_ID): str,
+                    vol.Optional(CONF_STATION_NAME): str,
+                    vol.Optional("add_another"): cv.boolean,
                 }
             ),
             errors=errors,
