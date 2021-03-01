@@ -1,20 +1,18 @@
-import datetime
 import logging
 import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
 
-from .admiraltyuktidalapi import (
-    AdmiraltyUKTidalApi,
+from ukhotides import (
+    UkhoTides,
     ApiError,
     InvalidApiKeyError,
-    ApiQuotaExceededError,
-    TooManyRequestsError,
-    StationNotFoundError,
+    TidalEvent,
 )
+from datetime import datetime, timedelta
 from async_timeout import timeout
 from aiohttp.client_exceptions import ClientConnectorError
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Tuple, List
 from homeassistant.const import ATTR_ATTRIBUTION, CONF_API_KEY
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -28,7 +26,6 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     DOMAIN,
-    COORDINATOR,
     ATTRIBUTION,
     ATTR_ICON_RISING,
     ATTR_ICON_FALLING,
@@ -61,23 +58,19 @@ async def async_setup_platform(
     discovery_info: Optional[DiscoveryInfoType] = None,
 ) -> None:
     session = async_get_clientsession(hass)
-    admiraltyUKTidalApi = AdmiraltyUKTidalApi(session, config[CONF_API_KEY])
+    ukhotides = UkhoTides(session, config[CONF_API_KEY])
 
     sensors = []
 
     for station in config[CONF_STATIONS]:
-        coordinator = AdmiraltyUKTidalApiDataUpdateCoordinator(
-            hass, admiraltyUKTidalApi, station
-        )
+        coordinator = UkhoTidesDataUpdateCoordinator(hass, ukhotides, station)
 
         if CONF_STATION_NAME in coordinator.station:
             name = station[CONF_STATION_NAME]
         else:
             name = (
-                await admiraltyUKTidalApi.async_get_station(
-                    coordinator.station[CONF_STATION_ID]
-                )
-            )["properties"]["Name"]
+                await ukhotides.async_get_station(coordinator.station[CONF_STATION_ID])
+            ).name
 
         sensors.append(UkhoTidesSensor(coordinator, name))
 
@@ -87,23 +80,19 @@ async def async_setup_platform(
 async def async_setup_entry(hass, entry, async_add_entities):
     config = hass.data[DOMAIN][entry.entry_id]
     session = async_get_clientsession(hass)
-    admiraltyUKTidalApi = AdmiraltyUKTidalApi(session, config[CONF_API_KEY])
+    ukhotides = UkhoTides(session, config[CONF_API_KEY])
 
     sensors = []
 
     for station in config[CONF_STATIONS]:
-        coordinator = AdmiraltyUKTidalApiDataUpdateCoordinator(
-            hass, admiraltyUKTidalApi, station
-        )
+        coordinator = UkhoTidesDataUpdateCoordinator(hass, ukhotides, station)
 
         if CONF_STATION_NAME in coordinator.station:
             name = station[CONF_STATION_NAME]
         else:
             name = (
-                await admiraltyUKTidalApi.async_get_station(
-                    coordinator.station[CONF_STATION_ID]
-                )
-            )["properties"]["Name"]
+                await ukhotides.async_get_station(coordinator.station[CONF_STATION_ID])
+            ).name
 
         sensors.append(UkhoTidesSensor(coordinator, name))
 
@@ -132,9 +121,9 @@ class UkhoTidesSensor(CoordinatorEntity):
         if self.coordinator.data is None:
             return None
 
-        nextPrediction = self.get_next_prediction()
+        next_prediction_datetime, next_prediction = self.get_next_prediction()
 
-        if nextPrediction["EventType"] == "HighWater":
+        if next_prediction.event_type == "HighWater":
             return "Rising"
         else:
             return "Falling"
@@ -144,63 +133,68 @@ class UkhoTidesSensor(CoordinatorEntity):
         if self.coordinator.data is None:
             return None
 
-        nextPrediction = self.get_next_prediction()
+        next_prediction_datetime, next_prediction = self.get_next_prediction()
 
-        if nextPrediction["EventType"] == "HighWater":
+        if next_prediction.event_type == "HighWater":
             return ATTR_ICON_RISING
         else:
             return ATTR_ICON_FALLING
 
     @property
     def device_state_attributes(self):
-        nextPrediction = self.get_next_prediction()
+        next_prediction_datetime, next_prediction = self.get_next_prediction()
 
-        now = datetime.datetime.utcnow()
+        if next_prediction_datetime is None:
+            return None
 
-        timeToNextTide = nextPrediction["DateTimeObject"] - now
-        nextHeight = round(nextPrediction["Height"], 1)
+        now = datetime.utcnow()
 
-        hours, rem = divmod(timeToNextTide.seconds, 3600)
+        time_to_next_tide = next_prediction_datetime - now
+        next_height = round(next_prediction.height, 1)
+
+        hours, rem = divmod(time_to_next_tide.seconds, 3600)
         minutes, seconds = divmod(rem, 60)
 
-        if nextPrediction["EventType"] == "HighWater":
+        if next_prediction.event_type == "HighWater":
             kind = "high"
         else:
             kind = "low"
 
         self._attrs[f"{kind}_tide_in"] = f"{hours}h {minutes}m"
-        self._attrs[f"{kind}_tide_height"] = f"{nextHeight}m"
+        self._attrs[f"{kind}_tide_height"] = f"{next_height}m"
 
         return self._attrs
 
-    def get_next_prediction(self):
-        now = datetime.datetime.utcnow()
+    def get_next_prediction(self) -> Tuple[datetime, TidalEvent]:
+        now = datetime.utcnow()
 
-        for prediction in self.coordinator.data:
-            prediction["DateTimeObject"] = datetime.datetime.strptime(
-                prediction["DateTime"].split(".")[0], "%Y-%m-%dT%H:%M:%S"
+        for tidal_event in self.coordinator.data:
+            tidal_event_datetime = datetime.strptime(
+                # Get just the stuff before any potential milliseconds
+                tidal_event.date_time.split(".")[0],
+                "%Y-%m-%dT%H:%M:%S",
             )
 
-            if prediction["DateTimeObject"] > now:
-                return prediction
+            if tidal_event_datetime > now:
+                return tidal_event_datetime, tidal_event
 
-        return None
+        return None, None
 
 
-class AdmiraltyUKTidalApiDataUpdateCoordinator(DataUpdateCoordinator):
-    def __init__(self, hass, admiraltyUKTidalApi, station):
-        self._admiraltyUKTidalApi = admiraltyUKTidalApi
-        self.station = station
-        self._download_interval = datetime.timedelta(minutes=60)
+class UkhoTidesDataUpdateCoordinator(DataUpdateCoordinator):
+    def __init__(self, hass, ukhotides, station):
+        self._ukhotides = ukhotides
+        self._download_interval = timedelta(minutes=60)
         self._last_download_datetime = None
         self._data = None
+        self.station = station
 
-        update_interval = datetime.timedelta(minutes=1)
+        update_interval = timedelta(minutes=1)
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
 
-    async def _async_update_data(self):
-        now = datetime.datetime.utcnow()
+    async def _async_update_data(self) -> List[TidalEvent]:
+        now = datetime.utcnow()
 
         # As predictions rarely change, only refresh from the API infrequently
         if (
@@ -212,7 +206,7 @@ class AdmiraltyUKTidalApiDataUpdateCoordinator(DataUpdateCoordinator):
 
             try:
                 async with timeout(10):
-                    self._data = await self._admiraltyUKTidalApi.async_get_tidal_events(
+                    self._data = await self._ukhotides.async_get_tidal_events(
                         self.station[CONF_STATION_ID]
                     )
             except (

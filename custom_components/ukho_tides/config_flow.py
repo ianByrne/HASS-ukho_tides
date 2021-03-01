@@ -5,8 +5,12 @@ import asyncio
 from async_timeout import timeout
 from aiohttp import ClientError
 from aiohttp.client_exceptions import ClientConnectorError
+from ukhotides import (
+    UkhoTides,
+    ApiError,
+    InvalidApiKeyError,
+)
 
-from .admiraltyuktidalapi import AdmiraltyUKTidalApi, ApiError, InvalidApiKeyError
 from .const import (
     DOMAIN,
     CONF_STATIONS,
@@ -35,14 +39,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             try:
                 async with timeout(10):
-                    admiraltyUKTidalApi = AdmiraltyUKTidalApi(
+                    ukhotides = UkhoTides(
                         session,
                         user_input[CONF_API_KEY],
                     )
 
-                    stations = (await admiraltyUKTidalApi.async_get_stations())[
-                        "features"
-                    ]
+                    stations = await ukhotides.async_get_stations()
 
                     # self._stations = {}
 
@@ -84,12 +86,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             try:
                 async with timeout(10):
-                    admiraltyUKTidalApi = AdmiraltyUKTidalApi(
+                    ukhotides = UkhoTides(
                         session,
                         self.data[CONF_API_KEY],
                     )
 
-                    station = await admiraltyUKTidalApi.async_get_station(
+                    station = await ukhotides.async_get_station(
                         user_input[CONF_STATION_ID]
                     )
 
@@ -107,7 +109,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     {
                         CONF_STATION_ID: user_input[CONF_STATION_ID],
                         CONF_STATION_NAME: user_input.get(
-                            CONF_STATION_NAME, station["properties"]["Name"]
+                            CONF_STATION_NAME, station.name
                         ),
                     }
                 )
