@@ -4,9 +4,9 @@ A [Home Assistant (HASS)](https://www.home-assistant.io/) integration to show ti
 
 It provides an entity for each station that you follow, showing whether the tide is currently rising or falling.
 
-![Image of dashboard widget](todo.png)
+![Image of dashboard widget](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/card.PNG)
 
-![Image of sensor attributes](todo.png)
+![Image of sensor attributes](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/attributes.PNG)
 
 # How?
 
@@ -75,5 +75,6 @@ sensor:
 
 - Implement "options" flow to add/remove stations via the UI
 - Generate pretty charts for the dashboard
+- Webhooks to automate distribution and versioning
 - Submit to HACS
 - Submit to HASS
