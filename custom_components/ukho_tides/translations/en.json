@@ -14,7 +14,7 @@
                     "api_key": "API Key"
                 },
                 "title":"Tides",
-                "description": "You will need to sign up for a free Admiralty account to obtain an api key. See the documentation for details on how to do this\n\nhttps://github.com/ianByrne/HASS_Integration_UKHOTides"
+                "description": "You will need to sign up for a free Admiralty account to obtain an api key. See the documentation for details on how to do this\n\nhttps://github.com/ianByrne/HASS-ukho_tides"
             },
             "station": {
                 "title": "UKHO Tides",

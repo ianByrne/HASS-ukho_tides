@@ -4,7 +4,7 @@
     "step": {
       "user": {
         "title": "UKHO Tides",
-        "description": "You will need to sign up for a free Admiralty account to obtain an api key. See the documentation for details on how to do this\n\nhttps://github.com/ianByrne/HASS_Integration_UKHOTides",
+        "description": "You will need to sign up for a free Admiralty account to obtain an api key. See the documentation for details on how to do this\n\nhttps://github.com/ianByrne/HASS-ukho_tides",
         "data": {
           "api_key": "[%key:common::config_flow::data::api_key%]"
         }
