@@ -45,17 +45,17 @@ Once the files are in your `custom_components` directory, it can then be configu
 
 In HASS, navigate to **Configuration --> Integrations --> Add Integration** and then search for **UKHO Tides**.
 
-![Image of sensor auth](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/auth.PNG)
-
 Follow the prompts to select the API level you are using and paste your API key.
 
-![Image of station select](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/station_select.PNG)
+![Image of sensor auth](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/auth.PNG)
 
 Use the dropdown menu to select which station(s) you would like to follow.
 
-![Image of station settings](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/station_settings.PNG)
+![Image of station select](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/station_select.PNG)
 
 Enter a custom name for each station, as well as any offset (in minutes) from which to adjust the tide data.
+
+![Image of station settings](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/station_settings.PNG)
 
 ### configuration.yaml
 
