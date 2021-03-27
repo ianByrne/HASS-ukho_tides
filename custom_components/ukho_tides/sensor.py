@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from async_timeout import timeout
 from aiohttp.client_exceptions import ClientConnectorError
 from typing import Any, Callable, Dict, Optional, Tuple, List
+from homeassistant import config_entries, core
 from homeassistant.const import ATTR_ATTRIBUTION, CONF_API_KEY
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -32,6 +33,7 @@ from .const import (
     CONF_STATIONS,
     CONF_STATION_ID,
     CONF_STATION_NAME,
+    CONF_STATION_OFFSET,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,6 +42,7 @@ TIDE_STATION_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_STATION_ID): cv.string,
         vol.Optional(CONF_STATION_NAME): cv.string,
+        vol.Optional(CONF_STATION_OFFSET): int,
     }
 )
 
@@ -77,8 +80,14 @@ async def async_setup_platform(
     async_add_entities(sensors, update_before_add=True)
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(
+    hass: core.HomeAssistant, entry: config_entries.ConfigEntry, async_add_entities
+):
     config = hass.data[DOMAIN][entry.entry_id]
+
+    if entry.options:
+        config.update(entry.options)
+
     session = async_get_clientsession(hass)
     ukhotides = UkhoTides(session, config[CONF_API_KEY])
 
@@ -121,9 +130,9 @@ class UkhoTidesSensor(CoordinatorEntity):
         if self.coordinator.data is None:
             return None
 
-        next_prediction_datetime, next_prediction = self.get_next_prediction()
+        next_predictions = self.get_next_predictions()
 
-        if next_prediction.event_type == "HighWater":
+        if next_predictions[0]["tidal_event"].event_type == "HighWater":
             return "Rising"
         else:
             return "Falling"
@@ -133,40 +142,41 @@ class UkhoTidesSensor(CoordinatorEntity):
         if self.coordinator.data is None:
             return None
 
-        next_prediction_datetime, next_prediction = self.get_next_prediction()
+        next_predictions = self.get_next_predictions()
 
-        if next_prediction.event_type == "HighWater":
+        if next_predictions[0]["tidal_event"].event_type == "HighWater":
             return ATTR_ICON_RISING
         else:
             return ATTR_ICON_FALLING
 
     @property
     def device_state_attributes(self):
-        next_prediction_datetime, next_prediction = self.get_next_prediction()
+        next_predictions = self.get_next_predictions()
 
-        if next_prediction_datetime is None:
+        if next_predictions is None:
             return None
 
         now = datetime.utcnow()
 
-        time_to_next_tide = next_prediction_datetime - now
-        next_height = round(next_prediction.height, 1)
+        for i in range(2):
+            time_to_next_tide = next_predictions[i]["tidal_event_datetime"] - now
+            next_height = round(next_predictions[i]["tidal_event"].height, 1)
 
-        hours, rem = divmod(time_to_next_tide.seconds, 3600)
-        minutes, seconds = divmod(rem, 60)
+            hours, rem = divmod(time_to_next_tide.seconds, 3600)
+            minutes, seconds = divmod(rem, 60)
 
-        if next_prediction.event_type == "HighWater":
-            kind = "high"
-        else:
-            kind = "low"
-
-        self._attrs[f"{kind}_tide_in"] = f"{hours}h {minutes}m"
-        self._attrs[f"{kind}_tide_height"] = f"{next_height}m"
+            if next_predictions[i]["tidal_event"].event_type == "HighWater":
+                self._attrs[f"next_high_tide_in"] = f"{hours}h {minutes}m"
+                self._attrs[f"next_high_tide_height"] = f"{next_height}m"
+            else:
+                self._attrs[f"next_low_tide_in"] = f"{hours}h {minutes}m"
+                self._attrs[f"next_low_tide_height"] = f"{next_height}m"
 
         return self._attrs
 
-    def get_next_prediction(self) -> Tuple[datetime, TidalEvent]:
+    def get_next_predictions(self) -> [{datetime, TidalEvent}]:
         now = datetime.utcnow()
+        next_predictions = []
 
         for tidal_event in self.coordinator.data:
             tidal_event_datetime = datetime.strptime(
@@ -175,10 +185,21 @@ class UkhoTidesSensor(CoordinatorEntity):
                 "%Y-%m-%dT%H:%M:%S",
             )
 
-            if tidal_event_datetime > now:
-                return tidal_event_datetime, tidal_event
+            # Add any offsets
+            if CONF_STATION_OFFSET in self.coordinator.station:
+                tidal_event_datetime = tidal_event_datetime + timedelta(
+                    minutes=self.coordinator.station[CONF_STATION_OFFSET]
+                )
 
-        return None, None
+            if tidal_event_datetime > now:
+                next_predictions.append(
+                    {
+                        "tidal_event_datetime": tidal_event_datetime,
+                        "tidal_event": tidal_event,
+                    }
+                )
+
+        return next_predictions
 
 
 class UkhoTidesDataUpdateCoordinator(DataUpdateCoordinator):

@@ -11,20 +11,46 @@
         "step": {
             "user": {
                 "data": {
+                    "api_level": "API Level",
                     "api_key": "API Key"
                 },
-                "title":"Tides",
-                "description": "You will need to sign up for a free Admiralty account to obtain an api key. See the documentation for details on how to do this\n\nhttps://github.com/ianByrne/HASS-ukho_tides"
+                "title":"Authentication",
+                "description": "You will need to sign up for a free Admiralty account to obtain an api key. See the documentation for details on how to do this\n\nhttps://github.com/ianByrne/HASS_Integration_UKHOTides"
             },
             "station": {
-                "title": "UKHO Tides",
-                "description": "Select a station to report on, and optionally give it a different name. To add multiple stations, check the 'add another' box",
+                "title": "Stations",
+                "description": "Select which stations to report on. You can update the name and any offsets on the next screen",
                 "data": {
-                  "station_id": "Station Id",
-                  "station_name": "Station Name",
-                  "add_another": "Add Another"
+                  "stations": "Stations"
                 }
-              }
+              },
+              "station_settings": {
+                  "title": "Station Settings",
+                  "description": "Update the station names and offsets. This is a number in minutes from which to offset the tide data",
+                  "data": {
+                    "station_name": "Name",
+                    "station_offset":"Offset"
+                  }
+                }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Stations",
+                "description": "Select which stations to report on. You can update the name and any offsets on the next screen",
+                "data": {
+                  "stations": "Stations"
+                }
+              },
+              "station_settings": {
+                  "title": "Station Settings",
+                  "description": "Update the station names and offsets. This is a number in minutes from which to offset the tide data",
+                  "data": {
+                    "station_name": "Name",
+                    "station_offset":"Offset"
+                  }
+                }
         }
     },
     "title": "UKHO Tides"

@@ -2,7 +2,7 @@
 
 A [Home Assistant (HASS)](https://www.home-assistant.io/) integration to show tide information for stations provided by the [UK Hydrographic Office (UKHO)](https://www.admiralty.co.uk/ukho/About-Us).
 
-It provides an entity for each station that you follow, showing whether the tide is currently rising or falling.
+It provides an entity for each station that you follow, showing whether the tide is currently rising or falling, and how long until the next high and low tides.
 
 ![Image of dashboard widget](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/card.PNG)
 
@@ -18,19 +18,9 @@ I've only recently fallen into the rabbit hole that is home automation, and this
 
 # Installation
 
-## Prerequisites
+## API Key
 
-### API Key
-
-First up, you will need an API key from the Admiralty Maritime Data Solutions developer portal. Follow [their guide](https://admiraltyapi.portal.azure-api.net/docs/startup) on how to do so and select one of the **UK Tidal API** products - the **Discovery** tier is free (the paid APIs are untested for this integration).
-
-### Station Ids
-
-Next you will need to make note of which station(s) you would like to follow. You can use the [Easytide service](http://www.ukho.gov.uk/Easytide/easytide/SelectPort.aspx) on the UKHO website to find a station, either on the map or via the search tab. Once a port is selected, check the URL for the `PortID` parameter and make note of its value.
-
-For example, the station Id for St Mary's is `0001` and can be seen in its URL below:
-
-> http://www.ukho.gov.uk/easytide/easytide/ShowPrediction.aspx?PortID=0001&PredictionLength=7
+First up, you will need an API key from the Admiralty Maritime Data Solutions developer portal. Follow [their guide](https://admiraltyapi.portal.azure-api.net/docs/startup) on how to do so and select one of the **UK Tidal API** products - the **Discovery** tier is free (the paid APIs are untested for this integration, but should in theory work fine).
 
 ## Installation
 
@@ -55,7 +45,17 @@ Once the files are in your `custom_components` directory, it can then be configu
 
 In HASS, navigate to **Configuration --> Integrations --> Add Integration** and then search for **UKHO Tides**.
 
-Follow the prompts to paste your API key and enter the id of a station that you would like to follow. To add multiple stations, check the "Add another" box before continuing. You can also set a custom name for the station - if left blank, it will use UKHO's name.
+![Image of sensor auth](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/auth.PNG)
+
+Follow the prompts to select the API level you are using and paste your API key.
+
+![Image of station select](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/station_select.PNG)
+
+Use the dropdown menu to select which station(s) you would like to follow.
+
+![Image of station settings](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/station_settings.PNG)
+
+Enter a custom name for each station, as well as any offset (in minutes) from which to adjust the tide data.
 
 ### configuration.yaml
 
@@ -69,12 +69,22 @@ sensor:
       - station_id: '0001'
       - station_id: '0113'
         station_name: 'London Bridge'
+        station_offset: -45
 ```
+
+To find the id of the station(s) you would like to follow, you can use the [Easytide service](http://www.ukho.gov.uk/Easytide/easytide/SelectPort.aspx) on the UKHO website to look up a station, either on the map or via the search tab. Once a port is selected, check the URL for the `PortID` parameter and make note of its value.
+
+For example, the station Id for St Mary's is `0001` and can be seen in its URL below:
+
+> http://www.ukho.gov.uk/easytide/easytide/ShowPrediction.aspx?PortID=0001&PredictionLength=7
 
 # TODO
 
-- Implement "options" flow to add/remove stations via the UI
 - Generate pretty charts for the dashboard
 - Webhooks to automate distribution and versioning
 - Submit to HACS
 - Submit to HASS
+
+# Attribution
+
+Contains ADMIRALTY® Tidal Data: © Crown copyright and database right

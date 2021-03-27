@@ -3,19 +3,45 @@
   "config": {
     "step": {
       "user": {
-        "title": "UKHO Tides",
-        "description": "You will need to sign up for a free Admiralty account to obtain an api key. See the documentation for details on how to do this\n\nhttps://github.com/ianByrne/HASS-ukho_tides",
+        "title": "Authentication",
+        "description": "You will need to sign up for a free Admiralty account to obtain an api key. See the documentation for details on how to do this\n\nhttps://github.com/ianByrne/HASS_Integration_UKHOTides",
         "data": {
+          "api_level": "[%key:common::config_flow::data::api_level%]",
           "api_key": "[%key:common::config_flow::data::api_key%]"
         }
       },
       "station": {
-        "title": "UKHO Tides",
-        "description": "Select a station to report on, and optionally give it a different name. To add multiple stations, check the 'add another' box",
+        "title": "Stations",
+        "description": "Select which stations to report on. You can update the name and any offsets on the next screen",
         "data": {
-          "station_id": "[%key:common::config_flow::data::station_id%]",
+          "stations": "[%key:common::config_flow::data::stations%]"
+        }
+      },
+      "station_settings": {
+        "title": "Station Settings",
+        "description": "Update the station names and offsets. This is a number in minutes from which to offset the tide data",
+        "data": {
           "station_name": "[%key:common::config_flow::data::station_name%]",
-          "add_another": "[%key:common::config_flow::data::add_another%]"
+          "station_offset": "[%key:common::config_flow::data::station_offset%]"
+        }
+      }
+    },
+    "options": {
+      "step": {
+        "init": {
+          "title": "Stations",
+          "description": "Select which stations to report on. You can update the name and any offsets on the next screen",
+          "data": {
+            "stations": "[%key:common::config_flow::data::stations%]"
+          }
+        },
+        "station_settings": {
+          "title": "Station Settings",
+          "description": "Update the station names and offsets. This is a number in minutes from which to offset the tide data",
+          "data": {
+            "station_name": "[%key:common::config_flow::data::station_name%]",
+            "station_offset": "[%key:common::config_flow::data::station_offset%]"
+          }
         }
       }
     },
