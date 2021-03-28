@@ -26,10 +26,11 @@
               },
               "station_settings": {
                   "title": "Station Settings",
-                  "description": "Update the station names and offsets. This is a number in minutes from which to offset the tide data",
+                  "description": "Update the station names and offsets. This is a number in minutes from which to offset the tide data. The fields, from top to bottom, are 'Station Name', 'High Tide Offset', 'Low Tide Offset'",
                   "data": {
                     "station_name": "Name",
-                    "station_offset":"Offset"
+                    "station_offset_high":"High Tide Offset",
+                    "station_offset_low":"Low Tide Offset"
                   }
                 }
         }
@@ -45,10 +46,11 @@
               },
               "station_settings": {
                   "title": "Station Settings",
-                  "description": "Update the station names and offsets. This is a number in minutes from which to offset the tide data",
+                  "description": "Update the station names and offsets. This is a number in minutes from which to offset the tide data. The fields, from top to bottom, are 'Station Name', 'High Tide Offset', 'Low Tide Offset'",
                   "data": {
                     "station_name": "Name",
-                    "station_offset":"Offset"
+                    "station_offset_high":"High Tide Offset",
+                    "station_offset_low":"Low Tide Offset"
                   }
                 }
         }

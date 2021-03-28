@@ -53,7 +53,7 @@ Use the dropdown menu to select which station(s) you would like to follow.
 
 ![Image of station select](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/station_select.PNG)
 
-Enter a custom name for each station, as well as any offset (in minutes) from which to adjust the tide data.
+Enter a custom name for each station, as well as any offset (in minutes) from which to adjust the tide data. Unfortunately, due to a limitation in the UI configuration, this section has no labels. The order of fields, from top to bottom, is 'Station Name', 'High Tide Offset', 'Low Tide Offset'.
 
 ![Image of station settings](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/station_settings.PNG)
 
@@ -69,7 +69,8 @@ sensor:
       - station_id: '0001'
       - station_id: '0113'
         station_name: 'London Bridge'
-        station_offset: -45
+        station_offset_high: -45
+        station_offset_low: 60
 ```
 
 To find the id of the station(s) you would like to follow, you can use the [Easytide service](http://www.ukho.gov.uk/Easytide/easytide/SelectPort.aspx) on the UKHO website to look up a station, either on the map or via the search tab. Once a port is selected, check the URL for the `PortID` parameter and make note of its value.

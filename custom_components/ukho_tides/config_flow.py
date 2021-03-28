@@ -14,7 +14,8 @@ from .const import (
     CONF_STATIONS,
     CONF_STATION_ID,
     CONF_STATION_NAME,
-    CONF_STATION_OFFSET,
+    CONF_STATION_OFFSET_HIGH,
+    CONF_STATION_OFFSET_LOW,
     DEFAULT_NAME,
     CONF_API_LEVEL,
 )
@@ -127,10 +128,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             station[CONF_STATION_NAME] = user_input[key]
                             break
 
-                if "station_offset" in key:
+                if "station_offset_high" in key:
                     for station in self.data[CONF_STATIONS]:
                         if station[CONF_STATION_ID] == station_id:
-                            station[CONF_STATION_OFFSET] = user_input[key]
+                            station[CONF_STATION_OFFSET_HIGH] = user_input[key]
+                            break
+
+                if "station_offset_low" in key:
+                    for station in self.data[CONF_STATIONS]:
+                        if station[CONF_STATION_ID] == station_id:
+                            station[CONF_STATION_OFFSET_LOW] = user_input[key]
                             break
 
             return self.async_create_entry(title=DEFAULT_NAME, data=self.data)
@@ -145,7 +152,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         default=station[CONF_STATION_NAME],
                     ): str,
                     vol.Required(
-                        CONF_STATION_OFFSET + "_" + station[CONF_STATION_ID], default=0
+                        CONF_STATION_OFFSET_HIGH + "_" + station[CONF_STATION_ID],
+                        default=0,
+                    ): int,
+                    vol.Required(
+                        CONF_STATION_OFFSET_LOW + "_" + station[CONF_STATION_ID],
+                        default=0,
                     ): int,
                 }
             )
@@ -250,7 +262,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                                 {
                                     CONF_STATION_ID: s.id,
                                     CONF_STATION_NAME: s.name,
-                                    CONF_STATION_OFFSET: 0,
+                                    CONF_STATION_OFFSET_HIGH: 0,
+                                    CONF_STATION_OFFSET_LOW: 0,
                                 }
                             )
 
@@ -289,10 +302,16 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                             station[CONF_STATION_NAME] = user_input[key]
                             break
 
-                if "station_offset" in key:
+                if "station_offset_high" in key:
                     for station in self.updated_stations:
                         if station[CONF_STATION_ID] == station_id:
-                            station[CONF_STATION_OFFSET] = user_input[key]
+                            station[CONF_STATION_OFFSET_HIGH] = user_input[key]
+                            break
+
+                if "station_offset_low" in key:
+                    for station in self.updated_stations:
+                        if station[CONF_STATION_ID] == station_id:
+                            station[CONF_STATION_OFFSET_LOW] = user_input[key]
                             break
 
             return self.async_create_entry(
@@ -310,10 +329,18 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         default=station[CONF_STATION_NAME],
                     ): str,
                     vol.Required(
-                        CONF_STATION_OFFSET + "_" + station[CONF_STATION_ID],
+                        CONF_STATION_OFFSET_HIGH + "_" + station[CONF_STATION_ID],
                         default=(
-                            station[CONF_STATION_OFFSET]
-                            if CONF_STATION_OFFSET in station
+                            station[CONF_STATION_OFFSET_HIGH]
+                            if CONF_STATION_OFFSET_HIGH in station
+                            else 0
+                        ),
+                    ): int,
+                    vol.Required(
+                        CONF_STATION_OFFSET_LOW + "_" + station[CONF_STATION_ID],
+                        default=(
+                            station[CONF_STATION_OFFSET_LOW]
+                            if CONF_STATION_OFFSET_LOW in station
                             else 0
                         ),
                     ): int,

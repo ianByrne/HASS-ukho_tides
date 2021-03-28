@@ -33,7 +33,8 @@ from .const import (
     CONF_STATIONS,
     CONF_STATION_ID,
     CONF_STATION_NAME,
-    CONF_STATION_OFFSET,
+    CONF_STATION_OFFSET_HIGH,
+    CONF_STATION_OFFSET_LOW,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,7 +43,8 @@ TIDE_STATION_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_STATION_ID): cv.string,
         vol.Optional(CONF_STATION_NAME): cv.string,
-        vol.Optional(CONF_STATION_OFFSET): int,
+        vol.Optional(CONF_STATION_OFFSET_HIGH): int,
+        vol.Optional(CONF_STATION_OFFSET_LOW): int,
     }
 )
 
@@ -186,9 +188,20 @@ class UkhoTidesSensor(CoordinatorEntity):
             )
 
             # Add any offsets
-            if CONF_STATION_OFFSET in self.coordinator.station:
+            if (
+                tidal_event.event_type == "HighWater"
+                and CONF_STATION_OFFSET_HIGH in self.coordinator.station
+            ):
                 tidal_event_datetime = tidal_event_datetime + timedelta(
-                    minutes=self.coordinator.station[CONF_STATION_OFFSET]
+                    minutes=self.coordinator.station[CONF_STATION_OFFSET_HIGH]
+                )
+
+            if (
+                tidal_event.event_type == "LowWater"
+                and CONF_STATION_OFFSET_LOW in self.coordinator.station
+            ):
+                tidal_event_datetime = tidal_event_datetime + timedelta(
+                    minutes=self.coordinator.station[CONF_STATION_OFFSET_LOW]
                 )
 
             if tidal_event_datetime > now:

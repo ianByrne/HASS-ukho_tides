@@ -19,10 +19,11 @@
       },
       "station_settings": {
         "title": "Station Settings",
-        "description": "Update the station names and offsets. This is a number in minutes from which to offset the tide data",
+        "description": "Update the station names and offsets. This is a number in minutes from which to offset the tide data. The fields, from top to bottom, are 'Station Name', 'High Tide Offset', 'Low Tide Offset'",
         "data": {
           "station_name": "[%key:common::config_flow::data::station_name%]",
-          "station_offset": "[%key:common::config_flow::data::station_offset%]"
+          "station_offset_high": "[%key:common::config_flow::data::station_offset_high%]",
+          "station_offset_low": "[%key:common::config_flow::data::station_offset_low%]"
         }
       }
     },
@@ -37,10 +38,11 @@
         },
         "station_settings": {
           "title": "Station Settings",
-          "description": "Update the station names and offsets. This is a number in minutes from which to offset the tide data",
+          "description": "Update the station names and offsets. This is a number in minutes from which to offset the tide data. The fields, from top to bottom, are 'Station Name', 'High Tide Offset', 'Low Tide Offset'",
           "data": {
             "station_name": "[%key:common::config_flow::data::station_name%]",
-            "station_offset": "[%key:common::config_flow::data::station_offset%]"
+            "station_offset_high": "[%key:common::config_flow::data::station_offset_high%]",
+            "station_offset_low": "[%key:common::config_flow::data::station_offset_low%]"
           }
         }
       }
