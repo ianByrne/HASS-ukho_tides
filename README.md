@@ -9,6 +9,7 @@ It provides an entity for each station that you follow, showing whether the tide
 ![Image of sensor attributes](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/attributes.PNG)
 
 ![Image of Apex chart](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/apex_chart.PNG)
+
 Height chart displayed via the [ApexCharts Lovelace UI card](https://github.com/RomRider/apexcharts-card). See below for details.
 
 # How?
