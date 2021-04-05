@@ -30,6 +30,7 @@ from .const import (
     ATTRIBUTION,
     ATTR_ICON_RISING,
     ATTR_ICON_FALLING,
+    CONF_API_LEVEL,
     CONF_STATIONS,
     CONF_STATION_ID,
     CONF_STATION_NAME,
@@ -51,6 +52,7 @@ TIDE_STATION_SCHEMA = vol.Schema(
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_API_KEY): cv.string,
+        vol.Optional(CONF_API_LEVEL): cv.string,
         vol.Required(CONF_STATIONS): vol.All(cv.ensure_list, [TIDE_STATION_SCHEMA]),
     }
 )
@@ -158,6 +160,15 @@ class UkhoTidesSensor(CoordinatorEntity):
         if next_predictions is None:
             return None
 
+        self._attrs[f"predictions"] = []
+        for p in self.coordinator.data:
+            self._attrs[f"predictions"].append(
+                [
+                    p["tidal_event_datetime"].strftime("%Y-%m-%d %H:%M:%S"),
+                    round(p["tidal_event"].height, 1),
+                ]
+            )
+
         now = datetime.utcnow()
 
         for i in range(2):
@@ -181,36 +192,8 @@ class UkhoTidesSensor(CoordinatorEntity):
         next_predictions = []
 
         for tidal_event in self.coordinator.data:
-            tidal_event_datetime = datetime.strptime(
-                # Get just the stuff before any potential milliseconds
-                tidal_event.date_time.split(".")[0],
-                "%Y-%m-%dT%H:%M:%S",
-            )
-
-            # Add any offsets
-            if (
-                tidal_event.event_type == "HighWater"
-                and CONF_STATION_OFFSET_HIGH in self.coordinator.station
-            ):
-                tidal_event_datetime = tidal_event_datetime + timedelta(
-                    minutes=self.coordinator.station[CONF_STATION_OFFSET_HIGH]
-                )
-
-            if (
-                tidal_event.event_type == "LowWater"
-                and CONF_STATION_OFFSET_LOW in self.coordinator.station
-            ):
-                tidal_event_datetime = tidal_event_datetime + timedelta(
-                    minutes=self.coordinator.station[CONF_STATION_OFFSET_LOW]
-                )
-
-            if tidal_event_datetime > now:
-                next_predictions.append(
-                    {
-                        "tidal_event_datetime": tidal_event_datetime,
-                        "tidal_event": tidal_event,
-                    }
-                )
+            if tidal_event["tidal_event_datetime"] > now:
+                next_predictions.append(tidal_event)
 
         return next_predictions
 
@@ -220,7 +203,7 @@ class UkhoTidesDataUpdateCoordinator(DataUpdateCoordinator):
         self._ukhotides = ukhotides
         self._download_interval = timedelta(minutes=60)
         self._last_download_datetime = None
-        self._data = None
+        self._data = []
         self.station = station
 
         update_interval = timedelta(minutes=1)
@@ -233,16 +216,57 @@ class UkhoTidesDataUpdateCoordinator(DataUpdateCoordinator):
         # As predictions rarely change, only refresh from the API infrequently
         if (
             self._last_download_datetime is None
-            or self._data is None
+            or not self._data
             or self._last_download_datetime < now - self._download_interval
         ):
             _LOGGER.debug("Re-downloading tide data")
 
             try:
                 async with timeout(10):
-                    self._data = await self._ukhotides.async_get_tidal_events(
+                    tidal_events = await self._ukhotides.async_get_tidal_events(
                         self.station[CONF_STATION_ID]
                     )
+
+                    for tidal_event in tidal_events:
+                        tidal_event_datetime = datetime.strptime(
+                            # Get just the stuff before any potential milliseconds
+                            tidal_event.date_time.split(".")[0],
+                            "%Y-%m-%dT%H:%M:%S",
+                        )
+
+                        # Add any offsets
+                        if (
+                            tidal_event.event_type == "HighWater"
+                            and CONF_STATION_OFFSET_HIGH in self.station
+                        ):
+                            tidal_event_datetime = tidal_event_datetime + timedelta(
+                                minutes=self.station[CONF_STATION_OFFSET_HIGH]
+                            )
+
+                        if (
+                            tidal_event.event_type == "LowWater"
+                            and CONF_STATION_OFFSET_LOW in self.station
+                        ):
+                            tidal_event_datetime = tidal_event_datetime + timedelta(
+                                minutes=self.station[CONF_STATION_OFFSET_LOW]
+                            )
+
+                        self._data.append(
+                            {
+                                "tidal_event_datetime": tidal_event_datetime,
+                                "tidal_event": tidal_event,
+                            }
+                        )
+
+                    # Keep only the last two events and all future ones
+                    i = 0
+                    for tidal_event in self._data:
+                        if tidal_event["tidal_event_datetime"] > now:
+                            if i > 1:
+                                self._data = self._data[i - 2 :]
+                            break
+
+                        i += 1
             except (
                 ApiError,
                 ClientConnectorError,

@@ -8,6 +8,9 @@ It provides an entity for each station that you follow, showing whether the tide
 
 ![Image of sensor attributes](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/attributes.PNG)
 
+![Image of Apex chart](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/apex_chart.PNG)
+Height chart displayed via the [ApexCharts Lovelace UI card](https://github.com/RomRider/apexcharts-card). See below for details.
+
 # How?
 
 This integration plugs into the [Admiralty Tidal API](https://admiraltyapi.portal.azure-api.net/) via the [ukhotides PyPI package](https://pypi.org/project/ukhotides/), which [I also wrote](https://github.com/ianByrne/PyPI-ukhotides) for this project.
@@ -79,9 +82,33 @@ For example, the station Id for St Mary's is `0001` and can be seen in its URL b
 
 > http://www.ukho.gov.uk/easytide/easytide/ShowPrediction.aspx?PortID=0001&PredictionLength=7
 
+## Height Chart
+
+You can display a height chart on the dashboard via the [ApexCharts Lovelace UI card](https://github.com/RomRider/apexcharts-card).
+
+![Image of Apex chart](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/apex_chart.PNG)
+
+See their docs for how to install it - this example is using the following configuration:
+
+```yaml
+type: 'custom:apexcharts-card'
+graph_span: 2d
+span:
+  start: hour
+  offset: '-5h'
+now:
+  show: true
+  label: now
+series:
+  - entity: sensor.london_bridge_tower_pier_tide
+    extend_to_end: false
+    unit: m
+    data_generator: |
+      return entity.attributes.predictions
+```
+
 # TODO
 
-- Generate pretty charts for the dashboard
 - Webhooks to automate distribution and versioning
 - Submit to HACS
 - Submit to HASS
