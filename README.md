@@ -105,7 +105,9 @@ series:
     extend_to_end: false
     unit: m
     data_generator: |
-      return entity.attributes.predictions
+      return entity.attributes.predictions.map((event) => {
+        return [moment.utc(event[0]).local(), event[1]];
+      });
 ```
 
 # TODO
