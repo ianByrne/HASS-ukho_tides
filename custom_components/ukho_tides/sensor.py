@@ -3,6 +3,7 @@ import voluptuous as vol
 
 import homeassistant.helpers.config_validation as cv
 
+from operator import itemgetter
 from ukhotides import (
     UkhoTides,
     ApiError,
@@ -259,6 +260,8 @@ class UkhoTidesDataUpdateCoordinator(DataUpdateCoordinator):
                         )
 
                     # Keep only the last two events and all future ones
+                    self._data.sort(key=itemgetter("tidal_event_datetime"))
+
                     i = 0
                     for tidal_event in self._data:
                         if tidal_event["tidal_event_datetime"] > now:
