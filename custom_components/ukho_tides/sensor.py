@@ -183,13 +183,13 @@ class UkhoTidesSensor(CoordinatorEntity):
                 self._attrs[f"next_high_tide_in"] = f"{hours}h {minutes}m"
                 self._attrs[f"next_high_tide_at"] = next_predictions[i][
                     "tidal_event_datetime"
-                ]
+                ].astimezone(None)
                 self._attrs[f"next_high_tide_height"] = f"{next_height}m"
             else:
                 self._attrs[f"next_low_tide_in"] = f"{hours}h {minutes}m"
                 self._attrs[f"next_low_tide_at"] = next_predictions[i][
                     "tidal_event_datetime"
-                ]
+                ].astimezone(None)
                 self._attrs[f"next_low_tide_height"] = f"{next_height}m"
 
         return self._attrs
