@@ -181,9 +181,15 @@ class UkhoTidesSensor(CoordinatorEntity):
 
             if next_predictions[i]["tidal_event"].event_type == "HighWater":
                 self._attrs[f"next_high_tide_in"] = f"{hours}h {minutes}m"
+                self._attrs[f"next_high_tide_at"] = next_predictions[i][
+                    "tidal_event_datetime"
+                ]
                 self._attrs[f"next_high_tide_height"] = f"{next_height}m"
             else:
                 self._attrs[f"next_low_tide_in"] = f"{hours}h {minutes}m"
+                self._attrs[f"next_low_tide_at"] = next_predictions[i][
+                    "tidal_event_datetime"
+                ]
                 self._attrs[f"next_low_tide_height"] = f"{next_height}m"
 
         return self._attrs
@@ -259,7 +265,7 @@ class UkhoTidesDataUpdateCoordinator(DataUpdateCoordinator):
                             }
                         )
 
-                    # Stack Overflow voodoo to get distinct events
+                    # Stack Overflow voodoo (comprehension) to get distinct events
                     self._data = [
                         i
                         for n, i in enumerate(self._data)
