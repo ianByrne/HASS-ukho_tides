@@ -10,7 +10,7 @@ from ukhotides import (
     InvalidApiKeyError,
     TidalEvent,
 )
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from async_timeout import timeout
 from aiohttp.client_exceptions import ClientConnectorError
 from typing import Any, Callable, Dict, Optional, Tuple, List
@@ -170,7 +170,7 @@ class UkhoTidesSensor(CoordinatorEntity):
                 ]
             )
 
-        now = datetime.utcnow()
+        now = datetime.utcnow().replace(tzinfo=timezone.utc)
 
         for i in range(2):
             time_to_next_tide = next_predictions[i]["tidal_event_datetime"] - now
@@ -183,19 +183,19 @@ class UkhoTidesSensor(CoordinatorEntity):
                 self._attrs[f"next_high_tide_in"] = f"{hours}h {minutes}m"
                 self._attrs[f"next_high_tide_at"] = next_predictions[i][
                     "tidal_event_datetime"
-                ].astimezone(None)
+                ].astimezone()
                 self._attrs[f"next_high_tide_height"] = f"{next_height}m"
             else:
                 self._attrs[f"next_low_tide_in"] = f"{hours}h {minutes}m"
                 self._attrs[f"next_low_tide_at"] = next_predictions[i][
                     "tidal_event_datetime"
-                ].astimezone(None)
+                ].astimezone()
                 self._attrs[f"next_low_tide_height"] = f"{next_height}m"
 
         return self._attrs
 
     def get_next_predictions(self) -> [{datetime, TidalEvent}]:
-        now = datetime.utcnow()
+        now = datetime.utcnow().replace(tzinfo=timezone.utc)
         next_predictions = []
 
         for tidal_event in self.coordinator.data:
@@ -218,7 +218,7 @@ class UkhoTidesDataUpdateCoordinator(DataUpdateCoordinator):
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
 
     async def _async_update_data(self) -> List[TidalEvent]:
-        now = datetime.utcnow()
+        now = datetime.utcnow().replace(tzinfo=timezone.utc)
 
         # As predictions rarely change, only refresh from the API infrequently
         if (
@@ -240,6 +240,8 @@ class UkhoTidesDataUpdateCoordinator(DataUpdateCoordinator):
                             tidal_event.date_time.split(".")[0],
                             "%Y-%m-%dT%H:%M:%S",
                         )
+                        # Convert to UTC
+                        tidal_event_datetime = tidal_event_datetime.replace(tzinfo=timezone.utc)
 
                         # Add any offsets
                         if (
