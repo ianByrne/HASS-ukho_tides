@@ -155,7 +155,7 @@ class UkhoTidesSensor(CoordinatorEntity):
             return ATTR_ICON_FALLING
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         next_predictions = self.get_next_predictions()
 
         if next_predictions is None:
