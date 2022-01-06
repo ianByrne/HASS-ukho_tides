@@ -4,11 +4,13 @@ A [Home Assistant (HASS)](https://www.home-assistant.io/) integration to show ti
 
 It provides an entity for each station that you follow, showing whether the tide is currently rising or falling, and how long until the next high and low tides.
 
-![Image of dashboard widget](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/card.PNG)
+![Image of dashboard widget](docs/card.PNG)
 
-![Image of sensor attributes](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/attributes.PNG)
+![Image of sensor](docs/sensor.PNG)
 
-![Image of Apex chart](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/apex_chart.PNG)
+![Image of card with attributes](docs/card_attributes.PNG)
+
+![Image of Apex chart](docs/apex_chart.PNG)
 
 Height chart displayed via the [ApexCharts Lovelace UI card](https://github.com/RomRider/apexcharts-card). See below for details.
 
@@ -51,15 +53,15 @@ In HASS, navigate to **Configuration --> Integrations --> Add Integration** and 
 
 Follow the prompts to select the API level you are using and paste your API key.
 
-![Image of sensor auth](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/auth.PNG)
+![Image of sensor auth](docs/auth.PNG)
 
 Use the dropdown menu to select which station(s) you would like to follow.
 
-![Image of station select](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/station_select.PNG)
+![Image of station select](docs/station_select.PNG)
 
 Enter a custom name for each station, as well as any offset (in minutes) from which to adjust the tide data. Unfortunately, due to a limitation in the UI configuration, this section has no labels. The order of fields, from top to bottom, is 'Station Name', 'High Tide Offset', 'Low Tide Offset'.
 
-![Image of station settings](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/station_settings.PNG)
+![Image of station settings](docs/station_settings.PNG)
 
 ### configuration.yaml
 
@@ -87,7 +89,7 @@ For example, the station Id for St Mary's is `0001` and can be seen in its URL b
 
 You can display a height chart on the dashboard via the [ApexCharts Lovelace UI card](https://github.com/RomRider/apexcharts-card).
 
-![Image of Apex chart](https://raw.githubusercontent.com/ianByrne/HASS-ukho_tides/main/docs/apex_chart.PNG)
+![Image of Apex chart](docs/apex_chart.PNG)
 
 See their docs for how to install it - this example is using the following configuration:
 
@@ -109,6 +111,54 @@ series:
         return [moment.utc(event[0]).local(), event[1]];
       });
 ```
+
+## Custom Card With Attributes
+
+There are a number of attributes that can be displayed:
+
+| Attribute | Example |
+| -- | -- |
+| `next_high_tide_in` | 11h 25m |
+| `next_low_tide_in` | 6h 57m |
+| `next_high_tide_at` | 7 January 2022, 01:02:14 |
+| `next_low_tide_at` | 7 January 2022, 05:30:26 |
+| `next_high_tide_height` | 5.4m |
+| `next_low_tide_height` | 0.2m |
+| `predictions` | Contains a list of upcoming predictions for internal use |
+
+You can use an Entities Card to display them on your Lovelace Dashboard:
+
+```yaml
+type: entities
+entities:
+  - entity: sensor.hammersmith_bridge_tide
+    name: Tide State
+  - type: attribute
+    entity: sensor.hammersmith_bridge_tide
+    attribute: next_high_tide_in
+    name: Next High Tide In
+    icon: mdi:waves
+  - type: attribute
+    entity: sensor.hammersmith_bridge_tide
+    attribute: next_high_tide_height
+    name: Next High Tide Height
+    icon: mdi:waves
+  - type: attribute
+    entity: sensor.hammersmith_bridge_tide
+    attribute: next_low_tide_in
+    name: Next Low High Tide In
+    icon: mdi:wave
+  - type: attribute
+    entity: sensor.hammersmith_bridge_tide
+    attribute: next_low_tide_height
+    name: Next Low High Tide Height
+    icon: mdi:wave
+title: Local Tides
+```
+
+![Image of card with attributes](docs/card_attributes.PNG)
+
+Note that a full list of icons can be found at the [Material Design Icons site](https://materialdesignicons.com/icon/home-assistant).
 
 # TODO
 
