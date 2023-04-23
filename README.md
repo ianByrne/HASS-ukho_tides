@@ -106,7 +106,6 @@ now:
   label: now
 series:
   - entity: sensor.london_bridge_tower_pier_tide
-    extend_to_end: false
     unit: m
     data_generator: |
       return entity.attributes.predictions.map((event) => {
