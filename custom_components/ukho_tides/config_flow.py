@@ -1,33 +1,29 @@
-import logging
-import voluptuous as vol
 import asyncio
-
+import logging
 from copy import deepcopy
-from typing import Dict, Any
-from async_timeout import timeout
+from typing import Any, Dict
+
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from aiohttp import ClientError
 from aiohttp.client_exceptions import ClientConnectorError
-from ukhotides import UkhoTides, ApiError, InvalidApiKeyError, Station, ApiLevel
+from async_timeout import timeout
+from homeassistant import config_entries
+from homeassistant.const import CONF_API_KEY
+from homeassistant.core import callback
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from ukhotides import ApiError, ApiLevel, InvalidApiKeyError, Station, UkhoTides
 
 from .const import (
-    DOMAIN,
-    CONF_STATIONS,
+    CONF_API_LEVEL,
     CONF_STATION_ID,
     CONF_STATION_NAME,
     CONF_STATION_OFFSET_HIGH,
     CONF_STATION_OFFSET_LOW,
+    CONF_STATIONS,
     DEFAULT_NAME,
-    CONF_API_LEVEL,
-)
-
-import homeassistant.helpers.config_validation as cv
-from homeassistant import config_entries
-from homeassistant.core import callback
-from homeassistant.const import CONF_API_KEY
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.entity_registry import (
-    async_entries_for_config_entry,
-    async_get_registry,
+    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -212,8 +208,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         else:
             # Get currently registered entities
-            entity_registry = await async_get_registry(self.hass)
-            registered_entities = async_entries_for_config_entry(
+            entity_registry = await er.async_get(self.hass)
+            registered_entities = er.async_entries_for_config_entry(
                 entity_registry, self.config_entry.entry_id
             )
 
