@@ -208,7 +208,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         else:
             # Get currently registered entities
-            entity_registry = await er.async_get(self.hass)
+            entity_registry = er.async_get(self.hass)
             registered_entities = er.async_entries_for_config_entry(
                 entity_registry, self.config_entry.entry_id
             )
