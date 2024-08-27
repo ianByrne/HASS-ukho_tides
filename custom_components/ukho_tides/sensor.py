@@ -1,42 +1,40 @@
+from datetime import datetime, timedelta, timezone
 import logging
+from operator import itemgetter
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+from aiohttp.client_exceptions import ClientConnectorError
+from async_timeout import timeout
+from ukhotides import ApiError, InvalidApiKeyError, TidalEvent, UkhoTides
 import voluptuous as vol
 
-import homeassistant.helpers.config_validation as cv
-
-from operator import itemgetter
-from ukhotides import (
-    UkhoTides,
-    ApiError,
-    InvalidApiKeyError,
-    TidalEvent,
-)
-from datetime import datetime, timedelta, timezone
-from async_timeout import timeout
-from aiohttp.client_exceptions import ClientConnectorError
-from typing import Any, Callable, Dict, Optional, Tuple, List
 from homeassistant import config_entries, core
-from homeassistant.const import ATTR_ATTRIBUTION, CONF_API_KEY
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.const import ATTR_ATTRIBUTION, CONF_API_KEY
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.typing import (
     ConfigType,
     DiscoveryInfoType,
     HomeAssistantType,
 )
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
 
 from .const import (
-    DOMAIN,
-    ATTRIBUTION,
-    ATTR_ICON_RISING,
     ATTR_ICON_FALLING,
+    ATTR_ICON_RISING,
+    ATTRIBUTION,
     CONF_API_LEVEL,
-    CONF_STATIONS,
     CONF_STATION_ID,
     CONF_STATION_NAME,
     CONF_STATION_OFFSET_HIGH,
     CONF_STATION_OFFSET_LOW,
+    CONF_STATIONS,
+    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -241,7 +239,9 @@ class UkhoTidesDataUpdateCoordinator(DataUpdateCoordinator):
                             "%Y-%m-%dT%H:%M:%S",
                         )
                         # Convert to UTC
-                        tidal_event_datetime = tidal_event_datetime.replace(tzinfo=timezone.utc)
+                        tidal_event_datetime = tidal_event_datetime.replace(
+                            tzinfo=timezone.utc
+                        )
 
                         # Add any offsets
                         if (
