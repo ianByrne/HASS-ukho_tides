@@ -26,7 +26,7 @@ I've only recently fallen into the rabbit hole that is home automation, and this
 
 ## API Key
 
-First up, you will need an API key from the Admiralty Maritime Data Solutions developer portal. Follow [their guide](https://admiraltyapi.portal.azure-api.net/docs/startup) on how to do so and select one of the **UK Tidal API** products - the **Discovery** tier is free (the paid APIs are untested for this integration, but should in theory work fine).
+First up, you will need an API key from the Admiralty Maritime Data Solutions developer portal. Follow [their guide](https://developer.admiralty.co.uk/docs/startup) on how to do so and select one of the **UK Tidal API** products - the **Discovery** tier is free (the paid APIs are untested for this integration, but should in theory work fine).
 
 Note that the "Products" section expands over several pages, with the "UK Tidal API - Discovery" option a bit harder to find on the second page. Alternatively you can also use the search function at the top right to find the string "discovery" and it should show up in the results list.
 
