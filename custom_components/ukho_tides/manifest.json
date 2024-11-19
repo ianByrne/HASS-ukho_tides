@@ -3,8 +3,8 @@
   "name": "UKHO Tides",
   "config_flow": true,
   "documentation": "https://github.com/ianByrne/HASS_Integration_UKHOTides",
-  "requirements": ["ukhotides==0.1.1"],
+  "requirements": ["ukhotides==1.1.0"],
   "dependencies": [],
   "codeowners": ["@ianByrne"],
-  "version": "0.1.1"
+  "version": "1.1.0"
 }
