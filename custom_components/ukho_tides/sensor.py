@@ -167,23 +167,27 @@ class UkhoTidesSensor(CoordinatorEntity):
 
         now = datetime.utcnow().replace(tzinfo=timezone.utc)
 
-        for i in range(2):
-            time_to_next_tide = next_predictions[i]["tidal_event_datetime"] - now
-            next_height = round(next_predictions[i]["tidal_event"].height, 1)
+        for event_type in ['HighWater', 'LowWater']:
+            next_event = next((p for p in next_predictions if p["tidal_event"].event_type == event_type), None)
+
+            if next_event is None:
+                continue
+
+            time_to_next_tide = next_event["tidal_event_datetime"] - now
+            next_height = round(next_event["tidal_event"].height, 1)
 
             hours, rem = divmod(time_to_next_tide.seconds, 3600)
             minutes, seconds = divmod(rem, 60)
 
-            if next_predictions[i]["tidal_event"].event_type == "HighWater":
+            if next_event["tidal_event"].event_type == "HighWater":
                 self._attrs[f"next_high_tide_in"] = f"{hours}h {minutes}m"
-                self._attrs[f"next_high_tide_at"] = next_predictions[i][
+                self._attrs[f"next_high_tide_at"] = next_event[
                     "tidal_event_datetime"
                 ].astimezone()
                 self._attrs[f"next_high_tide_height"] = f"{next_height}m"
-
-            if next_predictions[i]["tidal_event"].event_type == "LowWater":
+            else:
                 self._attrs[f"next_low_tide_in"] = f"{hours}h {minutes}m"
-                self._attrs[f"next_low_tide_at"] = next_predictions[i][
+                self._attrs[f"next_low_tide_at"] = next_event[
                     "tidal_event_datetime"
                 ].astimezone()
                 self._attrs[f"next_low_tide_height"] = f"{next_height}m"
